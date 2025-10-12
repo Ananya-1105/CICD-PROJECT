@@ -21,7 +21,7 @@ export default function AdminNavbar({ darkMode, toggleTheme }) {
 
   const links = [
     { to: "/", label: "Home", icon: <HomeIcon className="h-5 w-5" /> },
-    { to: "/profile", label: "Profile", icon: <UserCircleIcon className="h-5 w-5" /> },
+    { to: "/admin/profile", label: "Profile", icon: <UserCircleIcon className="h-5 w-5" /> },
   ];
 
   return (

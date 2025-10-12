@@ -15,6 +15,7 @@ import ProtectedRoute from "./components/ProjectHome/ProtectedRoute";
 import AdminLayout from './components/admin/AdminLayout';
 import AdminDashboard from './components/admin/AdminDashboard';
 import ManageEmployees from './components/admin/ManageEmployees';
+import AdminProfile from './components/admin/AdminProfile'; // <-- new
 
 // HR and Employee pages
 import HRDashboard from './components/hr/HRDashboard';
@@ -46,6 +47,11 @@ export default function AppRoutes() {
                 <ManageEmployees />
               </AdminLayout>
             } />
+            <Route path='/admin/profile' element={
+              <AdminLayout>
+                <AdminProfile />
+              </AdminLayout>
+            } /> {/* <-- added */}
 
             {/* HR and Employee dashboards */}
             <Route path='/hr' element={<HRDashboard />} />

@@ -1,309 +1,266 @@
 import React, { useState, useEffect } from "react";
 import axios from "axios";
-import AdminNavbar from "./AdminNavbar";
-import EmployeeCharts from "../employee/EmployeeCharts";
+import { Pie, Bar } from "react-chartjs-2";
+import {
+  Chart as ChartJS,
+  ArcElement,
+  Tooltip,
+  Legend,
+  CategoryScale,
+  LinearScale,
+  BarElement,
+} from "chart.js";
+import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+
+ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
 const ManageEmployees = () => {
   const [employees, setEmployees] = useState([]);
-  const [recentHires, setRecentHires] = useState([]);
   const [departments, setDepartments] = useState([]);
-  const [analytics, setAnalytics] = useState({
-    deptCount: {},
-    positionCount: {},
-    deptSalary: {},
-    positionSalary: {},
-  });
-  const [showModal, setShowModal] = useState(false);
-  const [newEmployee, setNewEmployee] = useState({
+  const [analytics, setAnalytics] = useState({ deptCount: {}, positionCount: {}, salaryDept: {} });
+  const [showAddModal, setShowAddModal] = useState(false);
+  const [editEmployeeId, setEditEmployeeId] = useState(null);
+
+  const [formData, setFormData] = useState({
     firstName: "",
     lastName: "",
-    phone: "",
     email: "",
+    phone: "",
     position: "",
     salary: "",
     hireDate: "",
     departmentId: "",
   });
 
-  // Fetch all employees
-  const fetchEmployees = async () => {
+  // Fetch employees and departments
+  const fetchData = async () => {
     try {
-      const response = await axios.get("http://localhost:8080/api/employees");
-      setEmployees(response.data);
-    } catch (error) {
-      console.error("Error fetching employees:", error);
+      const [empRes, deptRes] = await Promise.all([
+        axios.get("http://localhost:8080/api/employees"),
+        axios.get("http://localhost:8080/api/departments"),
+      ]);
+      setEmployees(empRes.data);
+      setDepartments(deptRes.data || []);
+    } catch (err) {
+      console.error("Error fetching data:", err);
     }
   };
 
-  // Fetch recent hires (last 5 by hireDate)
-  const fetchRecentHires = async () => {
-    try {
-      const response = await axios.get(
-        "http://localhost:8080/api/employees/recent"
-      );
-      setRecentHires(response.data);
-    } catch (error) {
-      console.error("Error fetching recent hires:", error);
+  // Prepare analytics
+  const fetchAnalytics = () => {
+    const deptCount = {};
+    const positionCount = {};
+    const salaryDept = {};
+    employees.forEach((e) => {
+      const deptName = e.departmentName || "Unassigned";
+      deptCount[deptName] = (deptCount[deptName] || 0) + 1;
+      positionCount[e.position || "Unknown"] = (positionCount[e.position || "Unknown"] || 0) + 1;
+      salaryDept[deptName] = (salaryDept[deptName] || []).concat(e.salary || 0);
+    });
+    const avgSalaryDept = {};
+    for (const dept in salaryDept) {
+      const arr = salaryDept[dept];
+      avgSalaryDept[dept] = arr.reduce((a, b) => a + b, 0) / arr.length;
     }
-  };
-
-  // Fetch departments
-  const fetchDepartments = async () => {
-    try {
-      const response = await axios.get("http://localhost:8080/api/departments");
-      setDepartments(Array.isArray(response.data) ? response.data : []);
-    } catch (error) {
-      console.error("Error fetching departments:", error);
-    }
-  };
-
-  // Fetch analytics from backend
-  const fetchAnalytics = async () => {
-    try {
-      const [deptCountRes, positionCountRes, deptSalaryRes, positionSalaryRes] =
-        await Promise.all([
-          axios.get("http://localhost:8080/api/employees/department-count"),
-          axios.get("http://localhost:8080/api/employees/position-count"),
-          axios.get("http://localhost:8080/api/employees/salary-department"),
-          axios.get("http://localhost:8080/api/employees/salary-position"),
-        ]);
-
-      setAnalytics({
-        deptCount: deptCountRes.data,
-        positionCount: positionCountRes.data,
-        deptSalary: deptSalaryRes.data,
-        positionSalary: positionSalaryRes.data,
-      });
-    } catch (error) {
-      console.error("Error fetching analytics:", error);
-    }
+    setAnalytics({ deptCount, positionCount, salaryDept: avgSalaryDept });
   };
 
   useEffect(() => {
-    fetchEmployees();
-    fetchRecentHires();
-    fetchDepartments();
-    fetchAnalytics();
+    fetchData();
   }, []);
+
+  useEffect(() => {
+    fetchAnalytics();
+  }, [employees]);
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
-    setNewEmployee((prev) => ({ ...prev, [name]: value }));
+    setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
-  const handleAddEmployee = async (e) => {
-    e.preventDefault();
+  const saveNewEmployee = async () => {
     try {
-      const payload = {
-        ...newEmployee,
-        salary: newEmployee.salary ? parseFloat(newEmployee.salary) : null,
-        departmentId: newEmployee.departmentId
-          ? parseInt(newEmployee.departmentId)
-          : null,
-      };
-
-      await axios.post("http://localhost:8080/api/employees", payload);
-
-      alert("Employee added successfully!");
-      setShowModal(false);
-
-      setNewEmployee({
-        firstName: "",
-        lastName: "",
-        phone: "",
-        email: "",
-        position: "",
-        salary: "",
-        hireDate: "",
-        departmentId: "",
+      await axios.post("http://localhost:8080/api/employees", {
+        ...formData,
+        salary: parseFloat(formData.salary),
+        departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
+        hireDate: formData.hireDate,
       });
-
-      // Refresh all data
-      fetchEmployees();
-      fetchRecentHires();
-      fetchAnalytics();
-    } catch (error) {
-      console.error("Error saving employee:", error.response || error);
-      alert("Failed to add employee. Check console for details.");
+      setShowAddModal(false);
+      setFormData({ firstName: "", lastName: "", email: "", phone: "", position: "", salary: "", hireDate: "", departmentId: "" });
+      fetchData();
+    } catch (err) {
+      console.error("Error adding employee:", err);
     }
   };
 
+  const startEdit = (emp) => {
+    setEditEmployeeId(emp.id);
+    setFormData({
+      firstName: emp.firstName,
+      lastName: emp.lastName,
+      email: emp.email,
+      phone: emp.phone,
+      position: emp.position,
+      salary: emp.salary,
+      hireDate: emp.hireDate,
+      departmentId: emp.department ? emp.department.id : "",
+    });
+  };
+
+  const saveEdit = async () => {
+    try {
+      await axios.put(`http://localhost:8080/api/employees/${editEmployeeId}`, {
+        ...formData,
+        salary: parseFloat(formData.salary),
+        departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
+        hireDate: formData.hireDate,
+      });
+      setEditEmployeeId(null);
+      setFormData({ firstName: "", lastName: "", email: "", phone: "", position: "", salary: "", hireDate: "", departmentId: "" });
+      fetchData();
+    } catch (err) {
+      console.error("Error editing employee:", err);
+    }
+  };
+
+  const deleteEmployee = async (id) => {
+    if (!window.confirm("Are you sure you want to delete this employee?")) return;
+    try {
+      await axios.delete(`http://localhost:8080/api/employees/${id}`);
+      fetchData();
+    } catch (err) {
+      console.error("Error deleting employee:", err);
+    }
+  };
+
+  // Charts
+  const deptChartData = {
+    labels: Object.keys(analytics.deptCount),
+    datasets: [{ data: Object.values(analytics.deptCount), backgroundColor: ["#4F46E5", "#6366F1", "#818CF8", "#A5B4FC"] }],
+  };
+  const positionChartData = {
+    labels: Object.keys(analytics.positionCount),
+    datasets: [{ data: Object.values(analytics.positionCount), backgroundColor: ["#EC4899", "#F472B6", "#F9A8D4", "#FBCFE8"] }],
+  };
+  const salaryChartData = {
+    labels: Object.keys(analytics.salaryDept),
+    datasets: [{ label: "Avg Salary", data: Object.values(analytics.salaryDept), backgroundColor: "#4ADE80" }],
+  };
+
+  // Summary stats
+  const totalEmployees = employees.length;
+  const totalDepartments = new Set(employees.map(e => e.departmentName)).size;
+  const totalPositions = new Set(employees.map(e => e.position)).size;
+  const avgSalary = employees.length ? (employees.reduce((sum, e) => sum + (e.salary || 0), 0) / employees.length).toFixed(2) : 0;
+
   return (
-    <div className="min-h-screen bg-gray-50">
-      <AdminNavbar />
-      <main className="p-6">
-        <h1 className="text-3xl font-bold mb-6 text-gray-800">
-          Manage Employees
-        </h1>
+    <div className="min-h-screen bg-gray-50 p-6">
+      <h1 className="text-3xl font-bold mb-6 text-gray-800">Manage Employees</h1>
 
+      {/* Summary cards */}
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <p className="text-gray-500">Total Employees</p>
+          <p className="text-2xl font-semibold">{totalEmployees}</p>
+        </div>
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <p className="text-gray-500">Departments</p>
+          <p className="text-2xl font-semibold">{totalDepartments}</p>
+        </div>
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <p className="text-gray-500">Positions</p>
+          <p className="text-2xl font-semibold">{totalPositions}</p>
+        </div>
+        <div className="bg-white shadow rounded-lg p-4 text-center">
+          <p className="text-gray-500">Avg Salary</p>
+          <p className="text-2xl font-semibold">${avgSalary}</p>
+        </div>
+      </div>
+
+      {/* Employee Table */}
+      <div className="flex justify-between items-center mb-4">
+        <h2 className="text-xl font-semibold text-gray-700">Employees</h2>
         <button
-          onClick={() => setShowModal(true)}
-          className="mb-6 px-5 py-3 bg-indigo-600 text-white font-semibold rounded shadow hover:bg-indigo-500 transition"
+          className="flex items-center bg-green-600 text-white px-3 py-1 rounded hover:bg-green-500"
+          onClick={() => setShowAddModal(true)}
         >
-          Add Employee
+          <PlusIcon className="w-5 h-5 mr-1" /> Add Employee
         </button>
+      </div>
 
-        {/* Employees Table */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Employees Table</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-center">
-              <thead className="bg-gray-100">
-                <tr>
-                  {[
-                    "ID",
-                    "First Name",
-                    "Last Name",
-                    "Email",
-                    "Phone",
-                    "Position",
-                    "Salary",
-                    "Hire Date",
-                    "Department",
-                  ].map((header) => (
-                    <th
-                      key={header}
-                      className="border border-gray-300 px-3 py-2 text-gray-700"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {employees.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-2 py-1">{emp.id}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.firstName}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.lastName}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.email}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.phone}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.position}</td>
-                    <td
-                      className={`border border-gray-300 px-2 py-1 ${
-                        emp.salary > 50000 ? "text-green-600 font-bold" : ""
-                      }`}
-                    >
-                      {emp.salary}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.hireDate}</td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {emp.departmentName || "Unassigned"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      <div className="overflow-x-auto bg-white shadow rounded-lg mb-6">
+        <table className="w-full border-collapse border border-gray-300 text-center">
+          <thead className="bg-gray-100">
+            <tr>
+              {["ID","First Name","Last Name","Email","Phone","Position","Salary","Hire Date","Department","Actions"].map(h => (
+                <th key={h} className="border border-gray-300 px-2 py-1 text-gray-700">{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {employees.map(emp => (
+              <tr key={emp.id} className="hover:bg-gray-50">
+                <td className="border px-2 py-1">{emp.id}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="firstName" value={formData.firstName} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.firstName}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="lastName" value={formData.lastName} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.lastName}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="email" value={formData.email} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.email}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="phone" value={formData.phone} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.phone}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="position" value={formData.position} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.position}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="salary" type="number" value={formData.salary} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.salary}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="hireDate" type="date" value={formData.hireDate} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.hireDate}</td>
+                <td className="border px-2 py-1">{editEmployeeId===emp.id?
+                  <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className="border px-1 py-0.5 w-full">
+                    <option value="">Unassigned</option>
+                    {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+                  </select>
+                  :emp.departmentName || "Unassigned"}
+                </td>
+                <td className="border px-2 py-1 flex justify-center gap-2">
+                  {editEmployeeId===emp.id?
+                    <>
+                      <button onClick={saveEdit} className="text-green-600 hover:text-green-800">Save</button>
+                      <button onClick={()=>setEditEmployeeId(null)} className="text-gray-600 hover:text-gray-800">Cancel</button>
+                    </>
+                    :
+                    <>
+                      <button onClick={()=>startEdit(emp)} className="text-blue-600 hover:text-blue-800"><PencilIcon className="w-5 h-5"/></button>
+                      <button onClick={()=>deleteEmployee(emp.id)} className="text-red-600 hover:text-red-800"><TrashIcon className="w-5 h-5"/></button>
+                    </>
+                  }
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-        {/* Recent Hires Table */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Recent Hires</h2>
-          <div className="overflow-x-auto">
-            <table className="w-full border-collapse border border-gray-300 text-center">
-              <thead className="bg-gray-100">
-                <tr>
-                  {["Name", "Position", "Hire Date", "Department"].map((header) => (
-                    <th
-                      key={header}
-                      className="border border-gray-300 px-3 py-2 text-gray-700"
-                    >
-                      {header}
-                    </th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {recentHires.map((emp) => (
-                  <tr key={emp.id} className="hover:bg-gray-50">
-                    <td className="border border-gray-300 px-2 py-1">
-                      {emp.firstName} {emp.lastName}
-                    </td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.position}</td>
-                    <td className="border border-gray-300 px-2 py-1">{emp.hireDate}</td>
-                    <td className="border border-gray-300 px-2 py-1">
-                      {emp.departmentName || "Unassigned"}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </div>
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Employees by Department</h3><Pie data={deptChartData} options={{responsive:true,plugins:{legend:{position:"bottom"}}}}/></div>
+        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Employees by Position</h3><Pie data={positionChartData} options={{responsive:true,plugins:{legend:{position:"bottom"}}}}/></div>
+        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Average Salary by Department</h3><Bar data={salaryChartData} options={{responsive:true,plugins:{legend:{display:false}}}}/></div>
+      </div>
 
-        {/* Charts */}
-        <div className="bg-white shadow rounded-lg p-6 mb-6">
-          <h2 className="text-xl font-semibold mb-4">Employee Analytics</h2>
-          <EmployeeCharts analytics={analytics} />
-        </div>
-
-        {/* Add Employee Modal */}
-        {showModal && (
-          <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-50">
-            <div className="bg-white p-6 rounded-lg w-full max-w-lg shadow-lg">
-              <h2 className="text-2xl font-bold mb-4 text-gray-800">Add Employee</h2>
-              <form
-                onSubmit={handleAddEmployee}
-                className="grid grid-cols-1 sm:grid-cols-2 gap-4"
-              >
-                {[
-                  { name: "firstName", placeholder: "First Name", required: true },
-                  { name: "lastName", placeholder: "Last Name", required: true },
-                  { name: "email", placeholder: "Email", type: "email", required: true },
-                  { name: "phone", placeholder: "Phone" },
-                  { name: "position", placeholder: "Position" },
-                  { name: "salary", placeholder: "Salary", type: "number" },
-                  { name: "hireDate", placeholder: "Hire Date", type: "date" },
-                ].map((field) => (
-                  <input
-                    key={field.name}
-                    name={field.name}
-                    type={field.type || "text"}
-                    value={newEmployee[field.name]}
-                    onChange={handleInputChange}
-                    placeholder={field.placeholder}
-                    required={field.required || false}
-                    className="border px-3 py-2 rounded w-full"
-                  />
-                ))}
-
-                {/* Department Dropdown */}
-                <select
-                  name="departmentId"
-                  value={newEmployee.departmentId}
-                  onChange={handleInputChange}
-                  required
-                  className="border px-3 py-2 rounded w-full"
-                >
-                  <option value="">Select Department</option>
-                  {departments.map((dept) => (
-                    <option key={dept.id} value={dept.id}>
-                      {dept.name}
-                    </option>
-                  ))}
-                </select>
-
-                <div className="col-span-full flex justify-end gap-2 mt-4">
-                  <button
-                    type="button"
-                    onClick={() => setShowModal(false)}
-                    className="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-500"
-                  >
-                    Add
-                  </button>
-                </div>
-              </form>
+      {/* Add Employee Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
+          <div className="bg-white rounded-lg p-6 w-96">
+            <h3 className="text-lg font-semibold mb-4">Add Employee</h3>
+            {["firstName","lastName","email","phone","position","salary","hireDate"].map(field=>(
+              <input key={field} type={field==="salary"?"number":field==="hireDate"?"date":"text"} placeholder={field.charAt(0).toUpperCase()+field.slice(1)} name={field} value={formData[field]} onChange={handleInputChange} className="border rounded px-2 py-1 mb-2 w-full"/>
+            ))}
+            <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className="border rounded px-2 py-1 mb-2 w-full">
+              <option value="">Select Department</option>
+              {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+            </select>
+            <div className="flex justify-end gap-2 mt-4">
+              <button onClick={()=>setShowAddModal(false)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-300">Cancel</button>
+              <button onClick={saveNewEmployee} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-500">Save</button>
             </div>
           </div>
-        )}
-      </main>
+        </div>
+      )}
     </div>
   );
 };
