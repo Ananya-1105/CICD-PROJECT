@@ -7,7 +7,7 @@ import ProjectHomePage from "./components/ProjectHome/ProjectHomePage";
 import LandingPage from "./components/ProjectHome/LandingPage";
 import LoginPage from "./components/ProjectHome/LoginPage";
 import RegisterPage from "./components/ProjectHome/RegisterPage";
-
+import ManageHr from "./components/admin/ManageHr";
 // Protected route wrapper
 import ProtectedRoute from "./components/ProjectHome/ProtectedRoute";
 
@@ -48,11 +48,15 @@ export default function AppRoutes() {
                 <ManageEmployees />
               </AdminLayout>
             } />
+<<<<<<< HEAD
             <Route path='/admin/managehr' element={
               <AdminLayout>
                 <Managehr />
               </AdminLayout>
             } />
+=======
+
+>>>>>>> 749ae1107a74905c1cbdfa3b87dc49028925f367
             <Route path='/admin/profile' element={
               <AdminLayout>
                 <AdminProfile />
@@ -63,7 +67,7 @@ export default function AppRoutes() {
             <Route path='/hr' element={<HRDashboard />} />
             <Route path='/employee' element={<EmployeeDashboard />} />
 
-          </Route>
+          </>
 
         </Routes>
       </BrowserRouter>
