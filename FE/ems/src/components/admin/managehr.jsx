@@ -27,13 +27,13 @@ export default function ManageHR() {
   const [editId, setEditId] = useState(null);
   const [darkMode, setDarkMode] = useState(true);
 
-  const toggleTheme = () => setDarkMode((prev) => !prev);
-
   const [form, setForm] = useState({
     name: "",
     email: "",
     password: "",
   });
+
+  const toggleTheme = () => setDarkMode((prev) => !prev);
 
   // THEME CLASSES
   const bgColor = darkMode
@@ -44,7 +44,7 @@ export default function ManageHR() {
     ? "bg-white/10 backdrop-blur-sm border border-white/20"
     : "bg-white border border-gray-200";
 
-  // Fetch all HRs
+  // Fetch HRs
   const fetchHrs = async () => {
     try {
       const res = await axios.get(API_BASE);
@@ -58,11 +58,11 @@ export default function ManageHR() {
     fetchHrs();
   }, []);
 
-  // Compute simple analytics
+  // Compute analytics
   useEffect(() => {
     const deptCount = {};
     hrs.forEach((h) => {
-      const key = h.user?.username ? "With Email" : "No Email";
+      const key = h.user?.username ? "Has Email" : "No Email";
       deptCount[key] = (deptCount[key] || 0) + 1;
     });
     setAnalytics({ deptCount });
@@ -73,18 +73,24 @@ export default function ManageHR() {
     setForm((p) => ({ ...p, [name]: value }));
   };
 
+  // ✅ Working Create HR
   const createHr = async () => {
-    if (!form.name || !form.email || !form.password) {
-      alert("All fields are required!");
+    if (!form.name?.trim() || !form.email?.trim() || !form.password) {
+      alert("Name, email and password are required.");
       return;
     }
     try {
-      await axios.post(API_BASE, form);
+      await axios.post(API_BASE, {
+        name: form.name.trim(),
+        email: form.email.trim(),
+        password: form.password,
+      });
       setShowAddModal(false);
       setForm({ name: "", email: "", password: "" });
       fetchHrs();
     } catch (err) {
       console.error("Error creating HR:", err);
+      alert("Failed to create HR - check console for details.");
     }
   };
 
@@ -98,32 +104,43 @@ export default function ManageHR() {
   };
 
   const saveEdit = async () => {
+    if (!form.name?.trim() || !form.email?.trim()) {
+      alert("Name and email are required.");
+      return;
+    }
     try {
       const payload = {
-        name: form.name,
-        email: form.email,
-        ...(form.password && { password: form.password }),
+        name: form.name.trim(),
+        email: form.email.trim(),
       };
+      if (form.password) payload.password = form.password;
       await axios.put(`${API_BASE}/${editId}`, payload);
       setEditId(null);
       setForm({ name: "", email: "", password: "" });
       fetchHrs();
     } catch (err) {
       console.error("Error updating HR:", err);
+      alert("Failed to update HR - check console for details.");
     }
   };
 
+  const cancelEdit = () => {
+    setEditId(null);
+    setForm({ name: "", email: "", password: "" });
+  };
+
   const deleteHr = async (id) => {
-    if (!window.confirm("Are you sure you want to delete this HR?")) return;
+    if (!window.confirm("Delete this HR record?")) return;
     try {
       await axios.delete(`${API_BASE}/${id}`);
       fetchHrs();
     } catch (err) {
       console.error("Error deleting HR:", err);
+      alert("Failed to delete HR - check console for details.");
     }
   };
 
-  // Chart data
+  // Chart
   const deptChartData = {
     labels: Object.keys(analytics.deptCount || {}),
     datasets: [
@@ -145,7 +162,9 @@ export default function ManageHR() {
         <button
           onClick={toggleTheme}
           className={`p-2 rounded-full border ${
-            darkMode ? "border-white/30 hover:bg-white/10" : "border-gray-300 hover:bg-gray-100"
+            darkMode
+              ? "border-white/30 hover:bg-white/10"
+              : "border-gray-300 hover:bg-gray-100"
           }`}
         >
           {darkMode ? (
@@ -194,7 +213,9 @@ export default function ManageHR() {
             <thead className={darkMode ? "bg-white/10" : "bg-gray-100"}>
               <tr>
                 {["ID", "Name", "Email", "Actions"].map((h) => (
-                  <th key={h} className="px-3 py-2 font-semibold">{h}</th>
+                  <th key={h} className="px-3 py-2 font-semibold">
+                    {h}
+                  </th>
                 ))}
               </tr>
             </thead>
@@ -236,7 +257,7 @@ export default function ManageHR() {
                           Save
                         </button>
                         <button
-                          onClick={() => setEditId(null)}
+                          onClick={cancelEdit}
                           className="text-gray-400 hover:text-gray-200"
                         >
                           Cancel
@@ -281,6 +302,53 @@ export default function ManageHR() {
           </div>
         </div>
       </main>
+
+      {/* ✅ Add HR Modal */}
+      {showAddModal && (
+        <div className="fixed inset-0 bg-black/60 flex justify-center items-center z-50">
+          <div className={`p-6 rounded-xl shadow-lg ${cardBg} w-80`}>
+            <h3 className="text-xl font-semibold mb-4 text-center">Add New HR</h3>
+            <div className="flex flex-col gap-3">
+              <input
+                name="name"
+                placeholder="Name"
+                value={form.name}
+                onChange={handleChange}
+                className="px-3 py-2 rounded border bg-transparent"
+              />
+              <input
+                name="email"
+                placeholder="Email"
+                value={form.email}
+                onChange={handleChange}
+                className="px-3 py-2 rounded border bg-transparent"
+              />
+              <input
+                name="password"
+                type="password"
+                placeholder="Password"
+                value={form.password}
+                onChange={handleChange}
+                className="px-3 py-2 rounded border bg-transparent"
+              />
+            </div>
+            <div className="flex justify-between mt-6">
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="px-4 py-2 rounded bg-gray-500 hover:bg-gray-400 text-white"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={createHr}
+                className="px-4 py-2 rounded bg-purple-600 hover:bg-purple-500 text-white"
+              >
+                Add
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
