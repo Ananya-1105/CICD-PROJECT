@@ -10,7 +10,13 @@ import {
   LinearScale,
   BarElement,
 } from "chart.js";
-import { PencilIcon, TrashIcon, PlusIcon } from "@heroicons/react/24/outline";
+import {
+  PencilIcon,
+  TrashIcon,
+  PlusIcon,
+  SunIcon,
+  MoonIcon,
+} from "@heroicons/react/24/outline";
 
 ChartJS.register(ArcElement, Tooltip, Legend, CategoryScale, LinearScale, BarElement);
 
@@ -20,6 +26,9 @@ const ManageEmployees = () => {
   const [analytics, setAnalytics] = useState({ deptCount: {}, positionCount: {}, salaryDept: {} });
   const [showAddModal, setShowAddModal] = useState(false);
   const [editEmployeeId, setEditEmployeeId] = useState(null);
+  const [darkMode, setDarkMode] = useState(true);
+
+  const toggleTheme = () => setDarkMode((p) => !p);
 
   const [formData, setFormData] = useState({
     firstName: "",
@@ -31,6 +40,19 @@ const ManageEmployees = () => {
     hireDate: "",
     departmentId: "",
   });
+
+  // THEME CLASSES (same as ManageHR)
+  const bgColor = darkMode
+    ? "bg-gradient-to-br from-gray-950 to-gray-900"
+    : "bg-gray-50";
+  const textColor = darkMode ? "text-gray-100" : "text-gray-800";
+  const cardBg = darkMode
+    ? "bg-white/10 backdrop-blur-sm border border-white/20"
+    : "bg-white border border-gray-200";
+
+  const inputStyle = darkMode
+    ? "bg-white/10 border border-gray-500 text-gray-100 placeholder-gray-300"
+    : "bg-white border border-gray-300 text-gray-800";
 
   // Fetch employees and departments
   const fetchData = async () => {
@@ -46,7 +68,6 @@ const ManageEmployees = () => {
     }
   };
 
-  // Prepare analytics
   const fetchAnalytics = () => {
     const deptCount = {};
     const positionCount = {};
@@ -87,7 +108,16 @@ const ManageEmployees = () => {
         hireDate: formData.hireDate,
       });
       setShowAddModal(false);
-      setFormData({ firstName: "", lastName: "", email: "", phone: "", position: "", salary: "", hireDate: "", departmentId: "" });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        position: "",
+        salary: "",
+        hireDate: "",
+        departmentId: "",
+      });
       fetchData();
     } catch (err) {
       console.error("Error adding employee:", err);
@@ -117,7 +147,16 @@ const ManageEmployees = () => {
         hireDate: formData.hireDate,
       });
       setEditEmployeeId(null);
-      setFormData({ firstName: "", lastName: "", email: "", phone: "", position: "", salary: "", hireDate: "", departmentId: "" });
+      setFormData({
+        firstName: "",
+        lastName: "",
+        email: "",
+        phone: "",
+        position: "",
+        salary: "",
+        hireDate: "",
+        departmentId: "",
+      });
       fetchData();
     } catch (err) {
       console.error("Error editing employee:", err);
@@ -150,37 +189,42 @@ const ManageEmployees = () => {
 
   // Summary stats
   const totalEmployees = employees.length;
-  const totalDepartments = new Set(employees.map(e => e.departmentName)).size;
-  const totalPositions = new Set(employees.map(e => e.position)).size;
-  const avgSalary = employees.length ? (employees.reduce((sum, e) => sum + (e.salary || 0), 0) / employees.length).toFixed(2) : 0;
+  const totalDepartments = new Set(employees.map((e) => e.departmentName)).size;
+  const totalPositions = new Set(employees.map((e) => e.position)).size;
+  const avgSalary = employees.length
+    ? (employees.reduce((sum, e) => sum + (e.salary || 0), 0) / employees.length).toFixed(2)
+    : 0;
 
   return (
-    <div className="min-h-screen bg-gray-50 p-6">
-      <h1 className="text-3xl font-bold mb-6 text-gray-800">Manage Employees</h1>
+    <div className={`min-h-screen transition-all duration-300 ${bgColor} ${textColor} p-6`}>
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-3xl font-bold">Manage Employees</h1>
+        <button
+          onClick={toggleTheme}
+          className="p-2 rounded-full border border-gray-500 hover:bg-gray-700/20"
+        >
+          {darkMode ? <SunIcon className="w-5 h-5 text-yellow-300" /> : <MoonIcon className="w-5 h-5 text-gray-800" />}
+        </button>
+      </div>
 
       {/* Summary cards */}
       <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500">Total Employees</p>
-          <p className="text-2xl font-semibold">{totalEmployees}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500">Departments</p>
-          <p className="text-2xl font-semibold">{totalDepartments}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500">Positions</p>
-          <p className="text-2xl font-semibold">{totalPositions}</p>
-        </div>
-        <div className="bg-white shadow rounded-lg p-4 text-center">
-          <p className="text-gray-500">Avg Salary</p>
-          <p className="text-2xl font-semibold">${avgSalary}</p>
-        </div>
+        {[
+          ["Total Employees", totalEmployees],
+          ["Departments", totalDepartments],
+          ["Positions", totalPositions],
+          ["Avg Salary", `$${avgSalary}`],
+        ].map(([title, value]) => (
+          <div key={title} className={`${cardBg} shadow rounded-lg p-4 text-center`}>
+            <p className="text-sm opacity-75">{title}</p>
+            <p className="text-2xl font-semibold">{value}</p>
+          </div>
+        ))}
       </div>
 
       {/* Employee Table */}
       <div className="flex justify-between items-center mb-4">
-        <h2 className="text-xl font-semibold text-gray-700">Employees</h2>
+        <h2 className="text-xl font-semibold">Employees</h2>
         <button
           className="flex items-center bg-green-600 text-white px-3 py-1 rounded hover:bg-green-500"
           onClick={() => setShowAddModal(true)}
@@ -189,45 +233,69 @@ const ManageEmployees = () => {
         </button>
       </div>
 
-      <div className="overflow-x-auto bg-white shadow rounded-lg mb-6">
-        <table className="w-full border-collapse border border-gray-300 text-center">
-          <thead className="bg-gray-100">
+      <div className={`${cardBg} overflow-x-auto shadow rounded-lg mb-6`}>
+        <table className="w-full border-collapse text-center text-sm">
+          <thead className={darkMode ? "bg-gray-800" : "bg-gray-100"}>
             <tr>
-              {["ID","First Name","Last Name","Email","Phone","Position","Salary","Hire Date","Department","Actions"].map(h => (
-                <th key={h} className="border border-gray-300 px-2 py-1 text-gray-700">{h}</th>
+              {["ID","First Name","Last Name","Email","Phone","Position","Salary","Hire Date","Department","Actions"].map((h) => (
+                <th key={h} className="px-2 py-2">{h}</th>
               ))}
             </tr>
           </thead>
           <tbody>
-            {employees.map(emp => (
-              <tr key={emp.id} className="hover:bg-gray-50">
-                <td className="border px-2 py-1">{emp.id}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="firstName" value={formData.firstName} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.firstName}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="lastName" value={formData.lastName} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.lastName}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="email" value={formData.email} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.email}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="phone" value={formData.phone} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.phone}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="position" value={formData.position} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.position}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="salary" type="number" value={formData.salary} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.salary}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?<input name="hireDate" type="date" value={formData.hireDate} onChange={handleInputChange} className="border px-1 py-0.5 w-full"/>:emp.hireDate}</td>
-                <td className="border px-2 py-1">{editEmployeeId===emp.id?
-                  <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className="border px-1 py-0.5 w-full">
-                    <option value="">Unassigned</option>
-                    {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
-                  </select>
-                  :emp.departmentName || "Unassigned"}
+            {employees.map((emp) => (
+              <tr key={emp.id} className={darkMode ? "hover:bg-gray-800/30" : "hover:bg-gray-50"}>
+                <td className="px-2 py-1">{emp.id}</td>
+                {["firstName","lastName","email","phone","position","salary","hireDate"].map((f) => (
+                  <td key={f} className="px-2 py-1">
+                    {editEmployeeId === emp.id ? (
+                      <input
+                        name={f}
+                        type={f === "salary" ? "number" : f === "hireDate" ? "date" : "text"}
+                        value={formData[f]}
+                        onChange={handleInputChange}
+                        className={`${inputStyle} rounded px-1 py-0.5 w-full`}
+                      />
+                    ) : (
+                      emp[f]
+                    )}
+                  </td>
+                ))}
+                <td className="px-2 py-1">
+                  {editEmployeeId === emp.id ? (
+                    <select
+                      name="departmentId"
+                      value={formData.departmentId}
+                      onChange={handleInputChange}
+                      className={`${inputStyle} rounded px-1 py-0.5 w-full`}
+                    >
+                      <option value="">Unassigned</option>
+                      {departments.map((d) => (
+                        <option key={d.id} value={d.id}>
+                          {d.name}
+                        </option>
+                      ))}
+                    </select>
+                  ) : (
+                    emp.departmentName || "Unassigned"
+                  )}
                 </td>
-                <td className="border px-2 py-1 flex justify-center gap-2">
-                  {editEmployeeId===emp.id?
+                <td className="px-2 py-1 flex justify-center gap-2">
+                  {editEmployeeId === emp.id ? (
                     <>
-                      <button onClick={saveEdit} className="text-green-600 hover:text-green-800">Save</button>
-                      <button onClick={()=>setEditEmployeeId(null)} className="text-gray-600 hover:text-gray-800">Cancel</button>
+                      <button onClick={saveEdit} className="text-green-500">Save</button>
+                      <button onClick={() => setEditEmployeeId(null)} className="text-gray-400">Cancel</button>
                     </>
-                    :
+                  ) : (
                     <>
-                      <button onClick={()=>startEdit(emp)} className="text-blue-600 hover:text-blue-800"><PencilIcon className="w-5 h-5"/></button>
-                      <button onClick={()=>deleteEmployee(emp.id)} className="text-red-600 hover:text-red-800"><TrashIcon className="w-5 h-5"/></button>
+                      <button onClick={() => startEdit(emp)} className="text-blue-500">
+                        <PencilIcon className="w-5 h-5" />
+                      </button>
+                      <button onClick={() => deleteEmployee(emp.id)} className="text-red-500">
+                        <TrashIcon className="w-5 h-5" />
+                      </button>
                     </>
-                  }
+                  )}
                 </td>
               </tr>
             ))}
@@ -237,26 +305,62 @@ const ManageEmployees = () => {
 
       {/* Charts */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Employees by Department</h3><Pie data={deptChartData} options={{responsive:true,plugins:{legend:{position:"bottom"}}}}/></div>
-        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Employees by Position</h3><Pie data={positionChartData} options={{responsive:true,plugins:{legend:{position:"bottom"}}}}/></div>
-        <div className="bg-white p-3 shadow rounded"><h3 className="font-semibold mb-2 text-center">Average Salary by Department</h3><Bar data={salaryChartData} options={{responsive:true,plugins:{legend:{display:false}}}}/></div>
+        <div className={`${cardBg} p-3 rounded`}>
+          <h3 className="font-semibold mb-2 text-center">Employees by Department</h3>
+          <Pie data={deptChartData} options={{ responsive: true, plugins: { legend: { position: "bottom" } } }} />
+        </div>
+        <div className={`${cardBg} p-3 rounded`}>
+          <h3 className="font-semibold mb-2 text-center">Employees by Position</h3>
+          <Pie data={positionChartData} options={{ responsive: true, plugins: { legend: { position: "bottom" } } }} />
+        </div>
+        <div className={`${cardBg} p-3 rounded`}>
+          <h3 className="font-semibold mb-2 text-center">Average Salary by Department</h3>
+          <Bar data={salaryChartData} options={{ responsive: true, plugins: { legend: { display: false } } }} />
+        </div>
       </div>
 
       {/* Add Employee Modal */}
       {showAddModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg p-6 w-96">
+        <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50">
+          <div className={`${cardBg} rounded-lg p-6 w-96`}>
             <h3 className="text-lg font-semibold mb-4">Add Employee</h3>
-            {["firstName","lastName","email","phone","position","salary","hireDate"].map(field=>(
-              <input key={field} type={field==="salary"?"number":field==="hireDate"?"date":"text"} placeholder={field.charAt(0).toUpperCase()+field.slice(1)} name={field} value={formData[field]} onChange={handleInputChange} className="border rounded px-2 py-1 mb-2 w-full"/>
+            {["firstName","lastName","email","phone","position","salary","hireDate"].map((field) => (
+              <input
+                key={field}
+                type={field === "salary" ? "number" : field === "hireDate" ? "date" : "text"}
+                placeholder={field.charAt(0).toUpperCase() + field.slice(1)}
+                name={field}
+                value={formData[field]}
+                onChange={handleInputChange}
+                className={`${inputStyle} rounded px-2 py-1 mb-2 w-full`}
+              />
             ))}
-            <select name="departmentId" value={formData.departmentId} onChange={handleInputChange} className="border rounded px-2 py-1 mb-2 w-full">
+            <select
+              name="departmentId"
+              value={formData.departmentId}
+              onChange={handleInputChange}
+              className={`${inputStyle} rounded px-2 py-1 mb-2 w-full`}
+            >
               <option value="">Select Department</option>
-              {departments.map(d=><option key={d.id} value={d.id}>{d.name}</option>)}
+              {departments.map((d) => (
+                <option key={d.id} value={d.id}>
+                  {d.name}
+                </option>
+              ))}
             </select>
             <div className="flex justify-end gap-2 mt-4">
-              <button onClick={()=>setShowAddModal(false)} className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-300">Cancel</button>
-              <button onClick={saveNewEmployee} className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-500">Save</button>
+              <button
+                onClick={() => setShowAddModal(false)}
+                className="bg-gray-400 text-white px-3 py-1 rounded hover:bg-gray-300"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={saveNewEmployee}
+                className="bg-green-600 text-white px-3 py-1 rounded hover:bg-green-500"
+              >
+                Save
+              </button>
             </div>
           </div>
         </div>

@@ -43,15 +43,15 @@ export default function AppRoutes() {
               </AdminLayout>
             } />
             <Route path='/admin/manageemployees' element={
-              <AdminLayout>
+              
                 <ManageEmployees />
-              </AdminLayout>
+              
             } />
 
             <Route path='/admin/managehr' element={
-              <AdminLayout>
+             
                 <ManageHr />
-              </AdminLayout>
+              
             } />
 
             <Route path='/admin/profile' element={
