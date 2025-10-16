@@ -17,10 +17,11 @@ import AdminDashboard from './components/admin/AdminDashboard';
 import ManageEmployees from './components/admin/ManageEmployees';
 import Managehr from './components/admin/Managehr';
 import AdminProfile from './components/admin/AdminProfile'; // <-- new
-
+import EmployeeDashboard from './components/employee/EmployeeDashboard';
 // HR and Employee pages
 import HRDashboard from './components/hr/HRDashboard';
-import EmployeeDashboard from './components/employee/EmployeeDashboard';
+
+import HrDashboard from "./components/hr/HRDashboard";
 
 export default function AppRoutes() {
   return (
@@ -61,7 +62,7 @@ export default function AppRoutes() {
             } /> {/* <-- added */}
 
             {/* HR and Employee dashboards */}
-            <Route path='/hr' element={<HRDashboard />} />
+            <Route path='/hr' element={<HrDashboard />} />
             <Route path='/employee' element={<EmployeeDashboard />} />
 
           </Route>
