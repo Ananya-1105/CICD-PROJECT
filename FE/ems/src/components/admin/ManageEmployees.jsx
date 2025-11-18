@@ -58,8 +58,8 @@ const ManageEmployees = () => {
   const fetchData = async () => {
     try {
       const [empRes, deptRes] = await Promise.all([
-        axios.get("http://localhost:8080/api/employees"),
-        axios.get("http://localhost:8080/api/departments"),
+        axios.get("http://34.204.199.101:8080/api/employees"),
+        axios.get("http://34.204.199.101:8080/api/departments"),
       ]);
       setEmployees(empRes.data);
       setDepartments(deptRes.data || []);
@@ -101,7 +101,7 @@ const ManageEmployees = () => {
 
   const saveNewEmployee = async () => {
     try {
-      await axios.post("http://localhost:8080/api/employees", {
+      await axios.post("http://34.204.199.101:8080/api/employees", {
         ...formData,
         salary: parseFloat(formData.salary),
         departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
@@ -140,7 +140,7 @@ const ManageEmployees = () => {
 
   const saveEdit = async () => {
     try {
-      await axios.put(`http://localhost:8080/api/employees/${editEmployeeId}`, {
+      await axios.put(`http://34.204.199.101:8080/api/employees/${editEmployeeId}`, {
         ...formData,
         salary: parseFloat(formData.salary),
         departmentId: formData.departmentId ? parseInt(formData.departmentId) : null,
@@ -166,7 +166,7 @@ const ManageEmployees = () => {
   const deleteEmployee = async (id) => {
     if (!window.confirm("Are you sure you want to delete this employee?")) return;
     try {
-      await axios.delete(`http://localhost:8080/api/employees/${id}`);
+      await axios.delete(`http://34.204.199.101:8080/api/employees/${id}`);
       fetchData();
     } catch (err) {
       console.error("Error deleting employee:", err);
