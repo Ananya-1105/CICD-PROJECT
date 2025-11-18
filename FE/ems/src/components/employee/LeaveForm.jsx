@@ -10,7 +10,7 @@ const LeaveForm = () => {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
-  const API_URL = "http://localhost:8080/api/leaves";
+  const API_URL = "http://34.204.199.101:8080/api/leaves";
 
   // Fetch employee leaves
   const fetchLeaves = async () => {
