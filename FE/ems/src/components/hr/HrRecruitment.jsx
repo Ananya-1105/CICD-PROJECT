@@ -3,7 +3,7 @@ import axios from "axios";
 
 const HrRecruitment = () => {
   const [applicants, setApplicants] = useState([]);
-  const BASE_URL = "http://localhost:8080/api/recruitments";
+  const BASE_URL = "http://34.204.199.101:8080/api/recruitments";
   const token = localStorage.getItem("token");
   const axiosConfig = { headers: { Authorization: `Bearer ${token}` } };
 
