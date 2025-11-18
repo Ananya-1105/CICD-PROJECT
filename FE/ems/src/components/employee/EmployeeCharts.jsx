@@ -24,7 +24,7 @@ const ManageEmployees = () => {
   const fetchEmployees = async () => {
     try {
       const token = localStorage.getItem("token");
-      const res = await axios.get("http://34.204.199.101:8080/api/employees", {
+      const res = await axios.get("http://98.94.241.163:8080/api/employees", {
         headers: { Authorization: `Bearer ${token}` },
       });
       setEmployees(res.data);
@@ -96,7 +96,7 @@ const ManageEmployees = () => {
   const saveEdit = async (id) => {
     try {
       const token = localStorage.getItem("token");
-      await axios.put(`http://34.204.199.101:8080/api/employees/${id}`, editData, {
+      await axios.put(`http://98.94.241.163:8080/api/employees/${id}`, editData, {
         headers: { Authorization: `Bearer ${token}` },
       });
       fetchEmployees();
@@ -111,7 +111,7 @@ const ManageEmployees = () => {
   const confirmDelete = async () => {
     try {
       const token = localStorage.getItem("token");
-      await axios.delete(`http://34.204.199.101:8080/api/employees/${deleteId}`, {
+      await axios.delete(`http://98.94.241.163:8080/api/employees/${deleteId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       setDeleteId(null);
