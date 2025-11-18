@@ -36,7 +36,7 @@ public class SecurityConfig {
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
             .csrf(csrf -> csrf.disable())
-            .cors(cors -> {}) // CORS will be handled by your CorsConfig
+            .cors(cors -> {}) // CORS handled elsewhere
             .authorizeHttpRequests(auth -> auth
                 // Public endpoints
                 .requestMatchers(
@@ -44,12 +44,23 @@ public class SecurityConfig {
                     "/api/auth/login",
                     "/api/employees/**",
                     "/api/departments/**",
-                    "/api/employees/recent",
-                    "/api/employees/department-count",
-                    "/api/employees/position-count",
-                    "/api/employees/salary-department",
-                    "/api/employees/salary-position"
+                    "/api/hrs/**",
+                    "/api/candidates/**",   
+                    "/files/**" 
                 ).permitAll()
+
+                // Employee endpoints (must be logged in)
+                .requestMatchers("/api/leaves/**", "/api/attendance/**")
+                .hasAnyRole("EMPLOYEE", "HR", "ADMIN")
+
+                // HR endpoints
+                .requestMatchers("/api/hrs/**")
+                .hasRole("HR")
+
+                // Admin endpoints
+                .requestMatchers("/api/admin/**")
+                .hasRole("ADMIN")
+
                 // Any other request requires authentication
                 .anyRequest().authenticated()
             )

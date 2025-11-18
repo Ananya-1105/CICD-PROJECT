@@ -1,13 +1,28 @@
 import React, { useState } from "react";
 import EmployeeAttendance from "../employee/EmployeeAttendance";
 import LeaveRequestForm from "../employee/LeaveForm";
+import { useNavigate } from "react-router-dom";
 
 const EmployeeDashboard = () => {
   const [activeCard, setActiveCard] = useState(""); // "leave" or "attendance"
   const token = localStorage.getItem("token");
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.clear();
+    navigate("/login");
+  };
 
   return (
-    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen">
+    <div className="p-6 bg-gray-100 dark:bg-gray-900 min-h-screen relative">
+      {/* Logout Button */}
+      <button
+        onClick={handleLogout}
+        className="absolute top-6 right-6 bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition"
+      >
+        Logout
+      </button>
+
       <h1 className="text-3xl font-bold mb-6 text-gray-800 dark:text-gray-100">
         Employee Dashboard
       </h1>

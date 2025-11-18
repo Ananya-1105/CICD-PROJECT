@@ -73,9 +73,13 @@ public class HrService {
         // Update the email and password on the associated User entity
         User user = hr.getUser();
         user.setUsername(hrDetails.getEmail());
-        user.setPassword(passwordEncoder.encode(hrDetails.getPassword()));
-        userRepository.save(user); // Save the updated User
 
+        // Only encode and update password if it is provided
+        if (hrDetails.getPassword() != null && !hrDetails.getPassword().isEmpty()) {
+            user.setPassword(passwordEncoder.encode(hrDetails.getPassword()));
+        }
+
+        userRepository.save(user); // Save the updated User
         return hrRepository.save(hr);
     }
 

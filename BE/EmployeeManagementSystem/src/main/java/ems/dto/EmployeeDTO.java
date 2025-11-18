@@ -2,6 +2,8 @@ package ems.dto;
 
 import java.time.LocalDate;
 
+import ems.entity.Employee;
+
 public class EmployeeDTO {
 
     private Long id;
@@ -87,5 +89,24 @@ public class EmployeeDTO {
     }
     public void setDepartmentName(String departmentName) {
         this.departmentName = departmentName;
+    }
+    
+    public static EmployeeDTO fromEntity(Employee emp) {
+        EmployeeDTO dto = new EmployeeDTO();
+        dto.setId(emp.getId());
+        dto.setFirstName(emp.getFirstName());
+        dto.setLastName(emp.getLastName());
+        dto.setEmail(emp.getEmail());
+        dto.setPhone(emp.getPhone());
+        dto.setPosition(emp.getPosition());
+        dto.setSalary(emp.getSalary());
+        dto.setHireDate(emp.getHireDate());
+
+        if (emp.getDepartment() != null) {
+            dto.setDepartmentId(emp.getDepartment().getId());
+            dto.setDepartmentName(emp.getDepartment().getName());
+        }
+
+        return dto;
     }
 }
