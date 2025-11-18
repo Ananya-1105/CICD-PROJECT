@@ -16,7 +16,8 @@ public class CorsConfig {
                         .allowedOrigins(
                          "http://localhost:5173",
                         "http://localhost:3000",
-                        "http://34.204.199.101"
+                        "http://34.204.199.101",
+                        "http://98.94.241.163"
                                                 )
 // your Vite dev server
                         .allowedMethods("GET", "POST", "PUT", "DELETE", "OPTIONS")
