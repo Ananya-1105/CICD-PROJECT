@@ -25,7 +25,7 @@ const HrDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   // Config for /api/hrs calls (token-based as in code 1)
-  const BASE_HR = "http://localhost:8080/api/hrs";
+  const BASE_HR = "http://34.204.199.101:8080/api/hrs";
   const token = localStorage.getItem("token");
   const axiosConfig = {
     headers: { Authorization: `Bearer ${token}` },
@@ -85,7 +85,7 @@ const HrDashboard = () => {
   const fetchRecruitments = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://localhost:8080/api/candidates");
+      const res = await axios.get("http://34.204.199.101:8080/api/candidates");
       setRecruitments(res.data || []);
     } catch (err) {
       console.error("Error fetching recruitments:", err);
@@ -151,7 +151,7 @@ const HrDashboard = () => {
   const handleClearAll = async () => {
     if (!window.confirm("Are you sure you want to clear all candidates?")) return;
     try {
-      await axios.delete("http://localhost:8080/api/candidates/clear");
+      await axios.delete("http://34.204.199.101:8080/api/candidates/clear");
       setRecruitments([]);
     } catch (err) {
       console.error("Error clearing candidates:", err);
@@ -374,7 +374,7 @@ const HrDashboard = () => {
                       <p className="text-gray-600 dark:text-gray-300">{c.email}</p>
                       {c.resumePath && (
                         <a
-                          href={`http://localhost:8080/files/${c.resumePath}`}
+                          href={`http://34.204.199.101:8080/files/${c.resumePath}`}
                           target="_blank"
                           rel="noreferrer"
                           className="text-blue-500 underline"
