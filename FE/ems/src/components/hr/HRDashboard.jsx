@@ -25,7 +25,7 @@ const HrDashboard = () => {
   const [loading, setLoading] = useState(false);
 
   // Config for /api/hrs calls (token-based as in code 1)
-  const BASE_HR = "http://34.204.199.101:8080/api/hrs";
+  const BASE_HR = "http://98.94.241.163:8080/api/hrs";
   const token = localStorage.getItem("token");
   const axiosConfig = {
     headers: { Authorization: `Bearer ${token}` },
@@ -85,7 +85,7 @@ const HrDashboard = () => {
   const fetchRecruitments = async () => {
     setLoading(true);
     try {
-      const res = await axios.get("http://34.204.199.101:8080/api/candidates");
+      const res = await axios.get("http://98.94.241.163:8080/api/candidates");
       setRecruitments(res.data || []);
     } catch (err) {
       console.error("Error fetching recruitments:", err);
@@ -138,7 +138,7 @@ const HrDashboard = () => {
   const handleDecision = async (id, status) => {
     try {
       await axios.patch(
-        `http://localhost:8080/api/candidates/${id}?status=${status}`
+        `http://98.94.241.163:8080/api/candidates/${id}?status=${status}`
       );
       setRecruitments((prev) => prev.map((c) => (c.id === id ? { ...c, status } : c)));
       alert(`Candidate ${status} successfully!`);
@@ -151,7 +151,7 @@ const HrDashboard = () => {
   const handleClearAll = async () => {
     if (!window.confirm("Are you sure you want to clear all candidates?")) return;
     try {
-      await axios.delete("http://34.204.199.101:8080/api/candidates/clear");
+      await axios.delete("http://98.94.241.163:8080/api/candidates/clear");
       setRecruitments([]);
     } catch (err) {
       console.error("Error clearing candidates:", err);
