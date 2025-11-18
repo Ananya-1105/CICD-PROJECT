@@ -12,7 +12,7 @@ import { FaRegCalendarAlt } from "react-icons/fa";
 import axios from "axios";
 import { useNavigate } from "react-router-dom";
 
-const API_BASE_URL = "http://34.204.199.101:8080/api/auth";
+const API_BASE_URL = "http://98.94.241.163:8080/api/auth";
 
 export default function RegisterPage({ onRegister }) {
   const navigate = useNavigate();
